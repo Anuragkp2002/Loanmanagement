@@ -22,4 +22,14 @@ class Loan(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 
-    
+class User(models.Model):
+    password = models.CharField(max_length=128,null=True)
+    created_at = models.DateTimeField(null=True)
+    is_active = models.BooleanField(default=True,null=True)
+    first_name = models.CharField(max_length=100,null=True)
+    last_name = models.CharField(max_length=100,null=True)
+    role = models.CharField(max_length=50,null=True)
+    email = models.EmailField(unique=True,null=True)
+    is_deleted = models.BooleanField(default=False,null=True)
+    is_verified = models.BooleanField(default=True,null=True)
+    updated_at = models.DateTimeField(null=True)
