@@ -9,3 +9,9 @@ class LoanSerializer(serializers.ModelSerializer):
         model=Loan
         fields="__all__"
 
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=User
+        fields="__all__"
+
