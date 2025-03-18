@@ -12,6 +12,8 @@ class LoanSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model=User
+        model=LoanUser
         fields="__all__"
+
+
 

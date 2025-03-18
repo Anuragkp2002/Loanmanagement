@@ -12,7 +12,8 @@ from decimal import Decimal
 from datetime import datetime, timedelta
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
-
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.tokens import AccessToken
 
 
 
@@ -51,8 +52,8 @@ class LoginViewSet(viewsets.ViewSet):
         password = request.data.get('password')
 
         try:
-            user = User.objects.get(email=email,password=password)
-        except User.DoesNotExist:
+            user = LoanUser.objects.get(email=email,password=password)
+        except LoanUser.DoesNotExist:
             return Response({'error': 'Invalid email or password'}, status=status.HTTP_401_UNAUTHORIZED)
 
         # import base64
@@ -63,11 +64,50 @@ class LoginViewSet(viewsets.ViewSet):
 
         refresh = RefreshToken.for_user(user)
         refresh['role'] = user.role
+        refresh['user'] = user.id
+
+        print(refresh['user'])
         
-        return Response({
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
+        access_token= str(refresh.access_token)
+        
+        response= Response({
+            'access': access_token  
         }, status=status.HTTP_200_OK)
+        response.set_cookie(
+            key="refresh_token",
+            value=str(refresh),
+            httponly=True,  
+            secure=False,  
+            samesite="None",  
+        )
+        
+        print("refresh",response)
+        return response
+
+
+
+    
+    
+    
+class RefreshTokenView(viewsets.ViewSet):
+    permission_classes = [AllowAny]
+
+    def create(self, request):
+        refresh_token = request.COOKIES.get("refresh_token")  
+        print("refresh_token",refresh_token)
+
+        if not refresh_token:
+            return Response({"error": "Refresh token missing"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            refresh = RefreshToken(refresh_token)  
+            access_token = str(refresh.access_token) 
+            return Response({"access": access_token}, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            return Response({"error": "Invalid or expired refresh token"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        
     
 class UsercreateView(viewsets.ViewSet):
     def create(self, request):
@@ -79,6 +119,49 @@ class UsercreateView(viewsets.ViewSet):
                 status=status.HTTP_201_CREATED
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+
+class LoanView(viewsets.ViewSet):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    def create(self,request):
+        serializer=LoanSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                "status": "success",
+                "data": serializer.data
+            }, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+    def list(self,request):
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return Response({"error": "Token missing or invalid"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        token_str = auth_header.split(' ')[1]  # Extract the token part
+        token_data = AccessToken(token_str)  # Decode the token
+        
+        user_id = token_data.get('user')
+        role = token_data.get('role')
+        user_id = token_data.get('user')
+        print("token_data",token_data)
+        role = token_data.get('role')
+        try:
+            user = LoanUser.objects.get(id=user_id)
+        except LoanUser.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if role == "Admin":
+            loans = Loan.objects.all()
+        else:
+            loans = Loan.objects.filter(user=user)
+        return Response({
+            "status": "success",
+            "data": LoanSerializer(loans, many=True).data
+        })
 
 
 
