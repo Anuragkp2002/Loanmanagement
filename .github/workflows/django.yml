@@ -24,12 +24,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Setup Environment Variables
-      run: |
-        echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
-        echo "DEBUG=False" >> .env
-        echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
-
     - name: Run Migrations
       run: python manage.py migrate
 
