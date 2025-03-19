@@ -112,6 +112,7 @@ class RefreshTokenView(viewsets.ViewSet):
 class UsercreateView(viewsets.ViewSet):
     def create(self, request):
         serializer = UserSerializer(data=request.data)
+        print("aaa")
         if serializer.is_valid():
             serializer.save()
             return Response(
