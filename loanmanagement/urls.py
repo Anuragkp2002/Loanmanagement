@@ -17,7 +17,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include
 
+from loanmanagementapi .views import*
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('loanmanagementapi.urls')),
+    path('', include('loanmanagementapi.urls')),
+    
 ]
