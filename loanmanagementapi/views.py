@@ -226,23 +226,11 @@ class LoanView(APIView):
     def get(self, request):
         
         
-        auth_header = request.headers.get('Authorization')
-
-        print("auth_header",auth_header)
-        if not auth_header or 'Bearer ' not in auth_header:
-            return Response({"error": "Authorization token is missing"}, status=status.HTTP_401_UNAUTHORIZED)
-
-        try:
-            token = auth_header.split(' ')[1]  
-            decoded_token = AccessToken(token)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
-
-        role = decoded_token.get('role')
-        user_id = decoded_token.get('user_id')
+        user_id = request.user.id
 
         try:
             user = LoanUser.objects.get(id=user_id)
+            role=user.role
         except LoanUser.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
