@@ -1,8 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 
 
-class LoanUser(models.Model):
+
+class LoanUser(AbstractBaseUser, PermissionsMixin):
     password = models.CharField(max_length=128,null=True)
     created_at = models.DateTimeField(null=True)
     is_active = models.BooleanField(default=True,null=True)
@@ -13,6 +15,21 @@ class LoanUser(models.Model):
     is_deleted = models.BooleanField(default=False,null=True)
     is_verified = models.BooleanField(default=True,null=True)
     updated_at = models.DateTimeField(null=True)
+    groups = models.ManyToManyField(
+        'auth.Group',
+        related_name='loan_users',  # Added to resolve conflict
+        blank=True
+    )
+    user_permissions = models.ManyToManyField(
+        'auth.Permission',
+        related_name='loan_users_permissions',  # Added to resolve conflict
+        blank=True
+    )
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
+
+    objects = models.Manager()
 
 
 class Loan(models.Model):
