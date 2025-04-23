@@ -30,6 +30,7 @@ class LoanUser(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = []
 
     objects = models.Manager()
+    db_table="LoanUser"
 
 
 class Loan(models.Model):
@@ -46,6 +47,9 @@ class Loan(models.Model):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="ACTIVE")
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        db_table="Loan"
+
 
 
 class PaymentSchedule(models.Model):
@@ -53,4 +57,7 @@ class PaymentSchedule(models.Model):
     installment_no = models.PositiveIntegerField(null=True)
     due_date = models.DateField(null=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2,null=True)
+
+    class Meta:
+        db_table="PaymentSchedule"
 
